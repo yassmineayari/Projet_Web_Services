@@ -1,0 +1,510 @@
+{
+  "info": {
+    "name": "Urban Traffic Management System - REST API",
+    "description": "Complete REST API collection for the Urban Traffic Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "auth_url",
+      "value": "http://localhost:3001"
+    },
+    {
+      "key": "vehicles_url",
+      "value": "http://localhost:3002"
+    },
+    {
+      "key": "traffic_url",
+      "value": "http://localhost:3003"
+    },
+    {
+      "key": "incidents_url",
+      "value": "http://localhost:3004"
+    },
+    {
+      "key": "notifications_url",
+      "value": "http://localhost:3005"
+    },
+    {
+      "key": "jwt_token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\\"email\\\": \\\"newuser@traffic.com\\\",\\n  \\\"password\\\": \\\"SecurePass123!\\\",\\n  \\\"firstName\\\": \\\"John\\\",\\n  \\\"lastName\\\": \\\"Doe\\\"\\n}"
+            },
+            "url": {
+              "raw": "{{auth_url}}/auth/register",
+              "host": ["{{auth_url}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\\"email\\\": \\\"operator@traffic.com\\\",\\n  \\\"password\\\": \\\"password123\\\"\\n}"
+            },
+            "url": {
+              "raw": "{{auth_url}}/auth/login",
+              "host": ["{{auth_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Validate Token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{auth_url}}/auth/validate",
+              "host": ["{{auth_url}}"],
+              "path": ["auth", "validate"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vehicles",
+      "item": [
+        {
+          "name": "Create Vehicle",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\\"plateNumber\\\": \\\"NEW-2024\\\",\\n  \\\"brand\\\": \\\"Tesla\\\",\\n  \\\"model\\\": \\\"Model 3\\\",\\n  \\\"type\\\": \\\"ELECTRIC_CAR\\\"\\n}"
+            },
+            "url": {
+              "raw": "{{vehicles_url}}/vehicles",
+              "host": ["{{vehicles_url}}"],
+              "path": ["vehicles"]
+            }
+          }
+        },
+        {
+          "name": "Get All Vehicles",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{vehicles_url}}/vehicles",
+              "host": ["{{vehicles_url}}"],
+              "path": ["vehicles"]
+            }
+          }
+        },
+        {
+          "name": "Get Vehicle by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{vehicles_url}}/vehicles/{{vehicle_id}}",
+              "host": ["{{vehicles_url}}"],
+              "path": ["vehicles", "{{vehicle_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Record GPS Position",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\\"latitude\\\": 48.8566,\\n  \\\"longitude\\\": 2.3522,\\n  \\\"speed\\\": 45.5,\\n  \\\"heading\\\": 270\\n}"
+            },
+            "url": {
+              "raw": "{{vehicles_url}}/vehicles/{{vehicle_id}}/gps",
+              "host": ["{{vehicles_url}}"],
+              "path": ["vehicles", "{{vehicle_id}}", "gps"]
+            }
+          }
+        },
+        {
+          "name": "Get Vehicle History",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{vehicles_url}}/vehicles/{{vehicle_id}}/history",
+              "host": ["{{vehicles_url}}"],
+              "path": ["vehicles", "{{vehicle_id}}", "history"]
+            }
+          }
+        },
+        {
+          "name": "Update Vehicle Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\\"status\\\": \\\"MAINTENANCE\\\"\\n}"
+            },
+            "url": {
+              "raw": "{{vehicles_url}}/vehicles/{{vehicle_id}}/status",
+              "host": ["{{vehicles_url}}"],
+              "path": ["vehicles", "{{vehicle_id}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Delete Vehicle",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{vehicles_url}}/vehicles/{{vehicle_id}}",
+              "host": ["{{vehicles_url}}"],
+              "path": ["vehicles", "{{vehicle_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Traffic Management",
+      "item": [
+        {
+          "name": "Create Traffic Zone",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\\"name\\\": \\\"Downtown Core\\\",\\n  \\\"description\\\": \\\"Central business district\\\",\\n  \\\"centerLatitude\\\": 48.8566,\\n  \\\"centerLongitude\\\": 2.3522,\\n  \\\"radiusKm\\\": 2.5\\n}"
+            },
+            "url": {
+              "raw": "{{traffic_url}}/traffic/zones",
+              "host": ["{{traffic_url}}"],
+              "path": ["traffic", "zones"]
+            }
+          }
+        },
+        {
+          "name": "Get All Traffic Zones",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{traffic_url}}/traffic/zones",
+              "host": ["{{traffic_url}}"],
+              "path": ["traffic", "zones"]
+            }
+          }
+        },
+        {
+          "name": "Get Traffic Zone by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{traffic_url}}/traffic/zones/{{zone_id}}",
+              "host": ["{{traffic_url}}"],
+              "path": ["traffic", "zones", "{{zone_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Congested Zones",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{traffic_url}}/traffic/zones/congested",
+              "host": ["{{traffic_url}}"],
+              "path": ["traffic", "zones", "congested"]
+            }
+          }
+        },
+        {
+          "name": "Update Zone Density",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\\"vehicleCount\\\": 85,\\n  \\\"averageSpeed\\\": 8.5\\n}"
+            },
+            "url": {
+              "raw": "{{traffic_url}}/traffic/zones/{{zone_id}}/density",
+              "host": ["{{traffic_url}}"],
+              "path": ["traffic", "zones", "{{zone_id}}", "density"]
+            }
+          }
+        },
+        {
+          "name": "Delete Traffic Zone",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{traffic_url}}/traffic/zones/{{zone_id}}",
+              "host": ["{{traffic_url}}"],
+              "path": ["traffic", "zones", "{{zone_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Incidents",
+      "item": [
+        {
+          "name": "Create Incident",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\\"type\\\": \\\"ACCIDENT\\\",\\n  \\\"title\\\": \\\"Car Collision\\\",\\n  \\\"description\\\": \\\"Two vehicles collided on main street\\\",\\n  \\\"latitude\\\": 48.8566,\\n  \\\"longitude\\\": 2.3522,\\n  \\\"reportedBy\\\": \\\"operator@traffic.com\\\"\\n}"
+            },
+            "url": {
+              "raw": "{{incidents_url}}/incidents",
+              "host": ["{{incidents_url}}"],
+              "path": ["incidents"]
+            }
+          }
+        },
+        {
+          "name": "Get All Incidents",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{incidents_url}}/incidents",
+              "host": ["{{incidents_url}}"],
+              "path": ["incidents"]
+            }
+          }
+        },
+        {
+          "name": "Get Active Incidents",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{incidents_url}}/incidents/active",
+              "host": ["{{incidents_url}}"],
+              "path": ["incidents", "active"]
+            }
+          }
+        },
+        {
+          "name": "Get Incident by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{incidents_url}}/incidents/{{incident_id}}",
+              "host": ["{{incidents_url}}"],
+              "path": ["incidents", "{{incident_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Incident Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\\"status\\\": \\\"IN_PROGRESS\\\"\\n}"
+            },
+            "url": {
+              "raw": "{{incidents_url}}/incidents/{{incident_id}}/status",
+              "host": ["{{incidents_url}}"],
+              "path": ["incidents", "{{incident_id}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Assign Incident",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\\"assignedTo\\\": \\\"operator@traffic.com\\\"\\n}"
+            },
+            "url": {
+              "raw": "{{incidents_url}}/incidents/{{incident_id}}/assign",
+              "host": ["{{incidents_url}}"],
+              "path": ["incidents", "{{incident_id}}", "assign"]
+            }
+          }
+        },
+        {
+          "name": "Delete Incident",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{incidents_url}}/incidents/{{incident_id}}",
+              "host": ["{{incidents_url}}"],
+              "path": ["incidents", "{{incident_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get User Notifications",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{notifications_url}}/notifications/user/{{user_id}}",
+              "host": ["{{notifications_url}}"],
+              "path": ["notifications", "user", "{{user_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Unread Notifications",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{notifications_url}}/notifications/user/{{user_id}}/unread",
+              "host": ["{{notifications_url}}"],
+              "path": ["notifications", "user", "{{user_id}}", "unread"]
+            }
+          }
+        },
+        {
+          "name": "Get Notification by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{notifications_url}}/notifications/{{notification_id}}",
+              "host": ["{{notifications_url}}"],
+              "path": ["notifications", "{{notification_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{notifications_url}}/notifications/{{notification_id}}/read",
+              "host": ["{{notifications_url}}"],
+              "path": ["notifications", "{{notification_id}}", "read"]
+            }
+          }
+        },
+        {
+          "name": "Mark All Notifications as Read",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{notifications_url}}/notifications/user/{{user_id}}/read-all",
+              "host": ["{{notifications_url}}"],
+              "path": ["notifications", "user", "{{user_id}}", "read-all"]
+            }
+          }
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{notifications_url}}/notifications/{{notification_id}}",
+              "host": ["{{notifications_url}}"],
+              "path": ["notifications", "{{notification_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete All User Notifications",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{notifications_url}}/notifications/user/{{user_id}}",
+              "host": ["{{notifications_url}}"],
+              "path": ["notifications", "user", "{{user_id}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

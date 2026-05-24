@@ -1,0 +1,12 @@
+export enum IncidentType {
+  ACCIDENT = 'ACCIDENT',
+  CONSTRUCTION = 'CONSTRUCTION',
+  ROAD_CLOSED = 'ROAD_CLOSED',
+  CONGESTION = 'CONGESTION',
+}
+
+export enum IncidentStatus {
+  REPORTED = 'REPORTED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  RESOLVED = 'RESOLVED',
+}

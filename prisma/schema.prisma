@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  OPERATOR
+}
+
+enum VehicleStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+}
+
+enum TrafficDensity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum IncidentType {
+  ACCIDENT
+  CONSTRUCTION
+  ROAD_CLOSED
+  CONGESTION
+}
+
+enum IncidentStatus {
+  REPORTED
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum NotificationType {
+  INCIDENT
+  TRAFFIC_ALERT
+  VEHICLE_UPDATE
+  SYSTEM
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      UserRole @default(OPERATOR)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Vehicle {
+  id               String        @id @default(uuid())
+  plateNumber     String        @unique
+  brand           String
+  model           String
+  type            String
+  status          VehicleStatus @default(ACTIVE)
+  currentLatitude  Decimal?     @db.Decimal(11, 8)
+  currentLongitude Decimal?     @db.Decimal(11, 8)
+  driverId        String?
+  gpsLocations    GPSLocation[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model GPSLocation {
+  id        String   @id @default(uuid())
+  latitude  Decimal  @db.Decimal(11, 8)
+  longitude Decimal  @db.Decimal(11, 8)
+  speed     Decimal? @db.Decimal(5, 2)
+  heading   Decimal? @db.Decimal(8, 2)
+  timestamp DateTime @default(now())
+
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicleId String
+
+  @@index([vehicleId, timestamp])
+}
+
+model TrafficZone {
+  id            String          @id @default(uuid())
+  name          String
+  description   String
+  centerLatitude  Decimal      @db.Decimal(11, 8)
+  centerLongitude Decimal     @db.Decimal(11, 8)
+  radiusKm     Decimal        @db.Decimal(8, 2)
+
+  density       TrafficDensity @default(LOW)
+  vehicleCount  Int            @default(0)
+  averageSpeed  Decimal?       @db.Decimal(5, 2)
+  lastUpdated   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Incident {
+  id          String         @id @default(uuid())
+  type        IncidentType
+  status      IncidentStatus @default(REPORTED)
+  title       String
+  description String
+  latitude    Decimal        @db.Decimal(11, 8)
+  longitude   Decimal        @db.Decimal(11, 8)
+  reportedBy  String?
+  assignedTo  String?
+  resolvedAt  DateTime?
+
+  affectedRoads String[] 
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id                String            @id @default(uuid())
+  userId            String
+  type              NotificationType
+  title             String
+  message           String
+  isRead            Boolean           @default(false)
+  relatedEntityId   String?
+  relatedEntityType String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}

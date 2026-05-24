@@ -1,0 +1,23 @@
+# TODO - Prisma migration (remove TypeORM)
+
+- [ ] Create `prisma/schema.prisma` with all models + enums
+- [ ] Add Prisma scripts to `package.json` and install deps (if needed)
+- [ ] Add Nest `PrismaService` (and optional `PrismaModule`)
+- [ ] Update Nest modules:
+  - [ ] `src/auth-service/auth.module.ts`
+  - [ ] `src/incidents-service/incidents.module.ts`
+  - [ ] `src/vehicles-service/vehicles.module.ts`
+  - [ ] `src/traffic-service/traffic.module.ts`
+  - [ ] `src/notifications-service/notifications.module.ts`
+- [ ] Rewrite services to use Prisma:
+  - [ ] `src/auth-service/auth.service.ts`
+  - [ ] `src/incidents-service/incidents.service.ts`
+  - [ ] `src/vehicles-service/vehicles.service.ts`
+  - [ ] `src/traffic-service/traffic.service.ts`
+  - [ ] `src/notifications-service/notifications.service.ts`
+- [ ] Remove TypeORM leftovers:
+  - [ ] Delete `src/config/typeorm.config.ts`
+  - [ ] Delete `src/**/entities/*.entity.ts` (or refactor to non-ORM types)
+  - [ ] Remove `@nestjs/typeorm` and `typeorm` imports/usages everywhere
+- [ ] Generate Prisma client + apply migration
+- [ ] Run build/tests and verify startup
