@@ -46,7 +46,6 @@ jobs:
       - name: Build Docker images
         run: |
           docker build -t traffic-api .
-          docker build -t traffic-frontend ./frontend
 
   deploy:
     name: Deploy
