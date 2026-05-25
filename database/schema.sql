@@ -1,6 +1,8 @@
 -- Traffic Management Database Schema
 -- PostgreSQL
 
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 -- Create ENUM types
 CREATE TYPE user_role AS ENUM ('ADMIN', 'OPERATOR');
 CREATE TYPE vehicle_status_enum AS ENUM ('ACTIVE', 'INACTIVE', 'MAINTENANCE');

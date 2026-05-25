@@ -1,15 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from './prisma/prisma.service';
+import { serializeGpsLocation, serializeVehicle } from '../prisma/serialize';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { RecordGPSDto } from './dto/record-gps.dto';
-import { VehicleStatus } from './entities/vehicle.entity';
+import { VehicleStatus } from './enums/vehicle-status.enum';
 
 @Injectable()
 export class VehiclesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createVehicle(createVehicleDto: CreateVehicleDto) {
-    return this.prisma.vehicle.create({
+    const vehicle = await this.prisma.vehicle.create({
       data: {
         plateNumber: createVehicleDto.plateNumber,
         brand: createVehicleDto.brand,
@@ -21,24 +22,27 @@ export class VehiclesService {
         driverId: (createVehicleDto as any).driverId ?? null,
       },
     });
+    return serializeVehicle(vehicle);
   }
 
   async getAllVehicles() {
-    return this.prisma.vehicle.findMany();
+    const vehicles = await this.prisma.vehicle.findMany();
+    return vehicles.map(serializeVehicle);
   }
 
   async getVehicleById(id: string) {
     const vehicle = await this.prisma.vehicle.findUnique({ where: { id } });
     if (!vehicle) throw new NotFoundException('Vehicle not found');
-    return vehicle;
+    return serializeVehicle(vehicle);
   }
 
   async updateVehicleStatus(id: string, status: string) {
     await this.getVehicleById(id);
-    return this.prisma.vehicle.update({
+    const vehicle = await this.prisma.vehicle.update({
       where: { id },
       data: { status: status as any },
     });
+    return serializeVehicle(vehicle);
   }
 
   async recordGPS(vehicleId: string, recordGpsDto: RecordGPSDto) {
@@ -52,7 +56,7 @@ export class VehiclesService {
       },
     });
 
-    return this.prisma.gPSLocation.create({
+    const location = await this.prisma.gPSLocation.create({
       data: {
         vehicleId,
         latitude: recordGpsDto.latitude,
@@ -62,6 +66,7 @@ export class VehiclesService {
         timestamp: (recordGpsDto as any).timestamp ? new Date((recordGpsDto as any).timestamp) : new Date(),
       },
     });
+    return serializeGpsLocation(location);
   }
 
   async getVehicleHistory(vehicleId: string, limit: number = 100) {
@@ -73,11 +78,15 @@ export class VehiclesService {
       take: limit,
     });
 
-    return { vehicle, history: locations };
+    return {
+      vehicle,
+      history: locations.map(serializeGpsLocation),
+    };
   }
 
   async deleteVehicle(id: string) {
     await this.getVehicleById(id);
-    return this.prisma.vehicle.delete({ where: { id } });
+    const vehicle = await this.prisma.vehicle.delete({ where: { id } });
+    return serializeVehicle(vehicle);
   }
 }

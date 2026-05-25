@@ -1,14 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from './prisma/prisma.service';
+import { serializeTrafficZone } from '../prisma/serialize';
 import { CreateTrafficZoneDto } from './dto/create-traffic-zone.dto';
-import { TrafficDensity } from './entities/traffic-zone.entity';
+import { TrafficDensity } from './enums/traffic-density.enum';
 
 @Injectable()
 export class TrafficService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createZone(createTrafficZoneDto: CreateTrafficZoneDto) {
-    return this.prisma.trafficZone.create({
+    const zone = await this.prisma.trafficZone.create({
       data: {
         name: createTrafficZoneDto.name,
         description: createTrafficZoneDto.description,
@@ -21,16 +22,18 @@ export class TrafficService {
         lastUpdated: (createTrafficZoneDto as any).lastUpdated ?? null,
       },
     });
+    return serializeTrafficZone(zone);
   }
 
   async getAllZones() {
-    return this.prisma.trafficZone.findMany();
+    const zones = await this.prisma.trafficZone.findMany();
+    return zones.map(serializeTrafficZone);
   }
 
   async getZoneById(id: string) {
     const zone = await this.prisma.trafficZone.findUnique({ where: { id } });
     if (!zone) throw new NotFoundException('Traffic zone not found');
-    return zone;
+    return serializeTrafficZone(zone);
   }
 
   async updateZoneDensity(id: string, vehicleCount: number, averageSpeed: number) {
@@ -43,7 +46,7 @@ export class TrafficService {
           ? TrafficDensity.MEDIUM
           : TrafficDensity.LOW;
 
-    return this.prisma.trafficZone.update({
+    const zone = await this.prisma.trafficZone.update({
       where: { id },
       data: {
         vehicleCount,
@@ -52,22 +55,26 @@ export class TrafficService {
         lastUpdated: new Date(),
       },
     });
+    return serializeTrafficZone(zone);
   }
 
   async getCongestedZones() {
-    return this.prisma.trafficZone.findMany({
+    const zones = await this.prisma.trafficZone.findMany({
       where: { density: TrafficDensity.HIGH },
     });
+    return zones.map(serializeTrafficZone);
   }
 
   async getZonesByDensity(density: TrafficDensity) {
-    return this.prisma.trafficZone.findMany({
+    const zones = await this.prisma.trafficZone.findMany({
       where: { density },
     });
+    return zones.map(serializeTrafficZone);
   }
 
   async deleteZone(id: string) {
     await this.getZoneById(id);
-    return this.prisma.trafficZone.delete({ where: { id } });
+    const zone = await this.prisma.trafficZone.delete({ where: { id } });
+    return serializeTrafficZone(zone);
   }
 }

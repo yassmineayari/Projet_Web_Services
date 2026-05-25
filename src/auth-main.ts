@@ -1,6 +1,9 @@
+import { bootstrapEnv } from './bootstrap-env';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './auth-service/app.module';
+
+bootstrapEnv('auth-service');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

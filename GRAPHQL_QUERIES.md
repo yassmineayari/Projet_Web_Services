@@ -180,7 +180,6 @@ mutation UpdateVehicleStatus {
     id
     plateNumber
     status
-    updatedAt
   }
 }
 ```
@@ -402,7 +401,6 @@ mutation UpdateIncidentStatus {
   ) {
     id
     status
-    updatedAt
   }
 }
 ```

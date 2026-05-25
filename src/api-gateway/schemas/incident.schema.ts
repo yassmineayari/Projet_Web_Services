@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { ObjectType, Field, ID, GraphQLISODateTime } from '@nestjs/graphql';
 
 @ObjectType()
 export class Incident {
@@ -35,6 +35,8 @@ export class Incident {
   @Field(() => [String], { nullable: true })
   affectedRoads: string[];
 
-  @Field()
+  @Field(() => GraphQLISODateTime)
   createdAt: Date;
+
 }
+

@@ -1,0 +1,6 @@
+export enum NotificationType {
+  INCIDENT = 'INCIDENT',
+  TRAFFIC_ALERT = 'TRAFFIC_ALERT',
+  VEHICLE_UPDATE = 'VEHICLE_UPDATE',
+  SYSTEM = 'SYSTEM',
+}

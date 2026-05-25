@@ -1,18 +1,8 @@
-{
+﻿{
   "info": {
-    "name": "Urban Traffic Management System - REST API",
-    "description": "Complete REST API collection for the Urban Traffic Management System",
+    "name": "Urban Traffic Management System - GraphQL API",
+    "description": "Collection complète pour l'API Gateway GraphQL du système de gestion de trafic urbain",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "auth": {
-    "type": "bearer",
-    "bearer": [
-      {
-        "key": "token",
-        "value": "{{jwt_token}}",
-        "type": "string"
-      }
-    ]
   },
   "variable": [
     {
@@ -20,36 +10,57 @@
       "value": "http://localhost:3000"
     },
     {
-      "key": "auth_url",
-      "value": "http://localhost:3001"
+      "key": "admin_token",
+      "value": ""
     },
     {
-      "key": "vehicles_url",
-      "value": "http://localhost:3002"
+      "key": "operator_token",
+      "value": ""
     },
     {
-      "key": "traffic_url",
-      "value": "http://localhost:3003"
+      "key": "vehicle_id",
+      "value": ""
     },
     {
-      "key": "incidents_url",
-      "value": "http://localhost:3004"
+      "key": "zone_id",
+      "value": ""
     },
     {
-      "key": "notifications_url",
-      "value": "http://localhost:3005"
+      "key": "incident_id",
+      "value": ""
     },
     {
-      "key": "jwt_token",
+      "key": "notification_id",
+      "value": ""
+    },
+    {
+      "key": "user_id",
       "value": ""
     }
   ],
   "item": [
     {
-      "name": "Authentication",
+      "name": "1. Authentication Service",
       "item": [
         {
-          "name": "Register User",
+          "name": "1.1 Register ADMIN",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "const token = jsonData?.data?.register?.accessToken;",
+                  "if (token) {",
+                  "    pm.collectionVariables.set('admin_token', token);",
+                  "    console.log('✅ Admin token saved');",
+                  "}",
+                  "const userId = jsonData?.data?.register?.user?.id;",
+                  "if (userId) pm.collectionVariables.set('user_id', userId);"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -60,17 +71,32 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\\n  \\\"email\\\": \\\"newuser@traffic.com\\\",\\n  \\\"password\\\": \\\"SecurePass123!\\\",\\n  \\\"firstName\\\": \\\"John\\\",\\n  \\\"lastName\\\": \\\"Doe\\\"\\n}"
+              "raw": "{\n  \"query\": \"mutation RegisterUser($email: String!, $password: String!, $firstName: String!, $lastName: String!, $role: String!) { register(email: $email, password: $password, firstName: $firstName, lastName: $lastName, role: $role) { accessToken refreshToken expiresIn user { id email firstName lastName role isActive } } }\",\n  \"variables\": {\n    \"email\": \"admin@traffic.com\",\n    \"password\": \"Admin123!\",\n    \"firstName\": \"Super\",\n    \"lastName\": \"Admin\",\n    \"role\": \"ADMIN\"\n  }\n}"
             },
             "url": {
-              "raw": "{{auth_url}}/auth/register",
-              "host": ["{{auth_url}}"],
-              "path": ["auth", "register"]
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
             }
           }
         },
         {
-          "name": "Login User",
+          "name": "1.2 Register OPERATOR",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "const token = jsonData?.data?.register?.accessToken;",
+                  "if (token) {",
+                  "    pm.collectionVariables.set('operator_token', token);",
+                  "    console.log('✅ Operator token saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -81,426 +107,776 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\\n  \\\"email\\\": \\\"operator@traffic.com\\\",\\n  \\\"password\\\": \\\"password123\\\"\\n}"
+              "raw": "{\n  \"query\": \"mutation RegisterUser($email: String!, $password: String!, $firstName: String!, $lastName: String!, $role: String!) { register(email: $email, password: $password, firstName: $firstName, lastName: $lastName, role: $role) { accessToken refreshToken expiresIn user { id email firstName lastName role isActive } } }\",\n  \"variables\": {\n    \"email\": \"operator@traffic.com\",\n    \"password\": \"Operator123!\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Operator\",\n    \"role\": \"OPERATOR\"\n  }\n}"
             },
             "url": {
-              "raw": "{{auth_url}}/auth/login",
-              "host": ["{{auth_url}}"],
-              "path": ["auth", "login"]
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
             }
           }
         },
         {
-          "name": "Validate Token",
+          "name": "1.3 Login ADMIN",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "const token = jsonData?.data?.login?.accessToken;",
+                  "if (token) {",
+                  "    pm.collectionVariables.set('admin_token', token);",
+                  "    console.log('✅ Admin logged in, token saved');",
+                  "}",
+                  "const userId = jsonData?.data?.login?.user?.id;",
+                  "if (userId) pm.collectionVariables.set('user_id', userId);"
+                ]
+              }
+            }
+          ],
           "request": {
-            "method": "GET",
+            "method": "POST",
             "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation LoginUser($email: String!, $password: String!) { login(email: $email, password: $password) { accessToken refreshToken expiresIn user { id email firstName lastName role isActive } } }\",\n  \"variables\": {\n    \"email\": \"admin@traffic.com\",\n    \"password\": \"Admin123!\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
+            }
+          }
+        },
+        {
+          "name": "1.4 Login OPERATOR",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "const token = jsonData?.data?.login?.accessToken;",
+                  "if (token) {",
+                  "    pm.collectionVariables.set('operator_token', token);",
+                  "    console.log('✅ Operator logged in, token saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation LoginUser($email: String!, $password: String!) { login(email: $email, password: $password) { accessToken refreshToken expiresIn user { id email firstName lastName role isActive } } }\",\n  \"variables\": {\n    \"email\": \"operator@traffic.com\",\n    \"password\": \"Operator123!\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
+            }
+          }
+        },
+        {
+          "name": "1.5 Validate Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{admin_token}}"
               }
             ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query ValidateToken($token: String!) { validateToken(token: $token) { id email firstName lastName role isActive } }\",\n  \"variables\": {\n    \"token\": \"{{admin_token}}\"\n  }\n}"
+            },
             "url": {
-              "raw": "{{auth_url}}/auth/validate",
-              "host": ["{{auth_url}}"],
-              "path": ["auth", "validate"]
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
             }
           }
         }
       ]
     },
     {
-      "name": "Vehicles",
+      "name": "2. Vehicles Service",
       "item": [
         {
-          "name": "Create Vehicle",
+          "name": "2.1 Get All Vehicles",
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{operator_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\\n  \\\"plateNumber\\\": \\\"NEW-2024\\\",\\n  \\\"brand\\\": \\\"Tesla\\\",\\n  \\\"model\\\": \\\"Model 3\\\",\\n  \\\"type\\\": \\\"ELECTRIC_CAR\\\"\\n}"
+              "raw": "{\n  \"query\": \"query { vehicles { id plateNumber brand model type status currentLatitude currentLongitude driverId } }\"\n}"
             },
             "url": {
-              "raw": "{{vehicles_url}}/vehicles",
-              "host": ["{{vehicles_url}}"],
-              "path": ["vehicles"]
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
             }
           }
         },
         {
-          "name": "Get All Vehicles",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{vehicles_url}}/vehicles",
-              "host": ["{{vehicles_url}}"],
-              "path": ["vehicles"]
+          "name": "2.2 Create Vehicle (ADMIN only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "const vehicleId = jsonData?.data?.createVehicle?.id;",
+                  "if (vehicleId) {",
+                  "    pm.collectionVariables.set('vehicle_id', vehicleId);",
+                  "    console.log('✅ Vehicle created, ID saved:', vehicleId);",
+                  "}"
+                ]
+              }
             }
-          }
-        },
-        {
-          "name": "Get Vehicle by ID",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{vehicles_url}}/vehicles/{{vehicle_id}}",
-              "host": ["{{vehicles_url}}"],
-              "path": ["vehicles", "{{vehicle_id}}"]
-            }
-          }
-        },
-        {
-          "name": "Record GPS Position",
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\\n  \\\"latitude\\\": 48.8566,\\n  \\\"longitude\\\": 2.3522,\\n  \\\"speed\\\": 45.5,\\n  \\\"heading\\\": 270\\n}"
+              "raw": "{\n  \"query\": \"mutation CreateVehicle($plateNumber: String!, $brand: String!, $model: String!, $type: String!) { createVehicle(plateNumber: $plateNumber, brand: $brand, model: $model, type: $type) { id plateNumber brand model type status } }\",\n  \"variables\": {\n    \"plateNumber\": \"AB-123-CD\",\n    \"brand\": \"Toyota\",\n    \"model\": \"Camry\",\n    \"type\": \"SEDAN\"\n  }\n}"
             },
             "url": {
-              "raw": "{{vehicles_url}}/vehicles/{{vehicle_id}}/gps",
-              "host": ["{{vehicles_url}}"],
-              "path": ["vehicles", "{{vehicle_id}}", "gps"]
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
             }
           }
         },
         {
-          "name": "Get Vehicle History",
+          "name": "2.3 Get Vehicle by ID",
           "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{vehicles_url}}/vehicles/{{vehicle_id}}/history",
-              "host": ["{{vehicles_url}}"],
-              "path": ["vehicles", "{{vehicle_id}}", "history"]
-            }
-          }
-        },
-        {
-          "name": "Update Vehicle Status",
-          "request": {
-            "method": "PATCH",
+            "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{operator_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\\n  \\\"status\\\": \\\"MAINTENANCE\\\"\\n}"
+              "raw": "{\n  \"query\": \"query Vehicle($id: String!) { vehicle(id: $id) { id plateNumber brand model type status currentLatitude currentLongitude driverId } }\",\n  \"variables\": {\n    \"id\": \"{{vehicle_id}}\"\n  }\n}"
             },
             "url": {
-              "raw": "{{vehicles_url}}/vehicles/{{vehicle_id}}/status",
-              "host": ["{{vehicles_url}}"],
-              "path": ["vehicles", "{{vehicle_id}}", "status"]
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
             }
           }
         },
         {
-          "name": "Delete Vehicle",
+          "name": "2.4 Record GPS Position",
           "request": {
-            "method": "DELETE",
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{operator_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation RecordGPS($vehicleId: String!, $latitude: Float!, $longitude: Float!, $speed: Float, $heading: Float) { recordGPS(vehicleId: $vehicleId, latitude: $latitude, longitude: $longitude, speed: $speed, heading: $heading) { id latitude longitude speed heading timestamp } }\",\n  \"variables\": {\n    \"vehicleId\": \"{{vehicle_id}}\",\n    \"latitude\": 48.8566,\n    \"longitude\": 2.3522,\n    \"speed\": 65.5,\n    \"heading\": 180.0\n  }\n}"
+            },
             "url": {
-              "raw": "{{vehicles_url}}/vehicles/{{vehicle_id}}",
-              "host": ["{{vehicles_url}}"],
-              "path": ["vehicles", "{{vehicle_id}}"]
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
+            }
+          }
+        },
+        {
+          "name": "2.5 Get Vehicle History",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{operator_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query VehicleHistory($vehicleId: String!) { vehicleHistory(vehicleId: $vehicleId) { vehicle { id plateNumber brand model type status } history { id latitude longitude speed heading timestamp } } }\",\n  \"variables\": {\n    \"vehicleId\": \"{{vehicle_id}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
+            }
+          }
+        },
+        {
+          "name": "2.6 Update Vehicle Status (ADMIN only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation UpdateVehicleStatus($vehicleId: String!, $status: String!) { updateVehicleStatus(vehicleId: $vehicleId, status: $status) { id plateNumber status } }\",\n  \"variables\": {\n    \"vehicleId\": \"{{vehicle_id}}\",\n    \"status\": \"MAINTENANCE\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
+            }
+          }
+        },
+        {
+          "name": "2.7 Delete Vehicle (ADMIN only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation DeleteVehicle($id: String!) { deleteVehicle(id: $id) { id plateNumber } }\",\n  \"variables\": {\n    \"id\": \"{{vehicle_id}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
             }
           }
         }
       ]
     },
     {
-      "name": "Traffic Management",
+      "name": "3. Traffic Service",
       "item": [
         {
-          "name": "Create Traffic Zone",
+          "name": "3.1 Get All Traffic Zones",
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\\n  \\\"name\\\": \\\"Downtown Core\\\",\\n  \\\"description\\\": \\\"Central business district\\\",\\n  \\\"centerLatitude\\\": 48.8566,\\n  \\\"centerLongitude\\\": 2.3522,\\n  \\\"radiusKm\\\": 2.5\\n}"
-            },
-            "url": {
-              "raw": "{{traffic_url}}/traffic/zones",
-              "host": ["{{traffic_url}}"],
-              "path": ["traffic", "zones"]
-            }
-          }
-        },
-        {
-          "name": "Get All Traffic Zones",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{traffic_url}}/traffic/zones",
-              "host": ["{{traffic_url}}"],
-              "path": ["traffic", "zones"]
-            }
-          }
-        },
-        {
-          "name": "Get Traffic Zone by ID",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{traffic_url}}/traffic/zones/{{zone_id}}",
-              "host": ["{{traffic_url}}"],
-              "path": ["traffic", "zones", "{{zone_id}}"]
-            }
-          }
-        },
-        {
-          "name": "Get Congested Zones",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{traffic_url}}/traffic/zones/congested",
-              "host": ["{{traffic_url}}"],
-              "path": ["traffic", "zones", "congested"]
-            }
-          }
-        },
-        {
-          "name": "Update Zone Density",
-          "request": {
-            "method": "PATCH",
-            "header": [
+              },
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{operator_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\\n  \\\"vehicleCount\\\": 85,\\n  \\\"averageSpeed\\\": 8.5\\n}"
+              "raw": "{\n  \"query\": \"query { trafficZones { id name description centerLatitude centerLongitude radiusKm density vehicleCount averageSpeed } }\"\n}"
             },
             "url": {
-              "raw": "{{traffic_url}}/traffic/zones/{{zone_id}}/density",
-              "host": ["{{traffic_url}}"],
-              "path": ["traffic", "zones", "{{zone_id}}", "density"]
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
             }
           }
         },
         {
-          "name": "Delete Traffic Zone",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "{{traffic_url}}/traffic/zones/{{zone_id}}",
-              "host": ["{{traffic_url}}"],
-              "path": ["traffic", "zones", "{{zone_id}}"]
+          "name": "3.2 Create Traffic Zone (ADMIN only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "const zoneId = jsonData?.data?.createTrafficZone?.id;",
+                  "if (zoneId) {",
+                  "    pm.collectionVariables.set('zone_id', zoneId);",
+                  "    console.log('✅ Zone created, ID saved:', zoneId);",
+                  "}"
+                ]
+              }
             }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Incidents",
-      "item": [
-        {
-          "name": "Create Incident",
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\\n  \\\"type\\\": \\\"ACCIDENT\\\",\\n  \\\"title\\\": \\\"Car Collision\\\",\\n  \\\"description\\\": \\\"Two vehicles collided on main street\\\",\\n  \\\"latitude\\\": 48.8566,\\n  \\\"longitude\\\": 2.3522,\\n  \\\"reportedBy\\\": \\\"operator@traffic.com\\\"\\n}"
+              "raw": "{\n  \"query\": \"mutation CreateTrafficZone($name: String!, $description: String!, $centerLatitude: Float!, $centerLongitude: Float!, $radiusKm: Float!) { createTrafficZone(name: $name, description: $description, centerLatitude: $centerLatitude, centerLongitude: $centerLongitude, radiusKm: $radiusKm) { id name density vehicleCount } }\",\n  \"variables\": {\n    \"name\": \"City Center\",\n    \"description\": \"Downtown traffic zone\",\n    \"centerLatitude\": 48.8566,\n    \"centerLongitude\": 2.3522,\n    \"radiusKm\": 2.5\n  }\n}"
             },
             "url": {
-              "raw": "{{incidents_url}}/incidents",
-              "host": ["{{incidents_url}}"],
-              "path": ["incidents"]
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
             }
           }
         },
         {
-          "name": "Get All Incidents",
+          "name": "3.3 Get Congested Zones",
           "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{incidents_url}}/incidents",
-              "host": ["{{incidents_url}}"],
-              "path": ["incidents"]
-            }
-          }
-        },
-        {
-          "name": "Get Active Incidents",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{incidents_url}}/incidents/active",
-              "host": ["{{incidents_url}}"],
-              "path": ["incidents", "active"]
-            }
-          }
-        },
-        {
-          "name": "Get Incident by ID",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{incidents_url}}/incidents/{{incident_id}}",
-              "host": ["{{incidents_url}}"],
-              "path": ["incidents", "{{incident_id}}"]
-            }
-          }
-        },
-        {
-          "name": "Update Incident Status",
-          "request": {
-            "method": "PATCH",
+            "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{operator_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\\n  \\\"status\\\": \\\"IN_PROGRESS\\\"\\n}"
+              "raw": "{\n  \"query\": \"query { congestedZones { id name density vehicleCount averageSpeed } }\"\n}"
             },
             "url": {
-              "raw": "{{incidents_url}}/incidents/{{incident_id}}/status",
-              "host": ["{{incidents_url}}"],
-              "path": ["incidents", "{{incident_id}}", "status"]
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
             }
           }
         },
         {
-          "name": "Assign Incident",
+          "name": "3.4 Get Zones by Density",
           "request": {
-            "method": "PATCH",
+            "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{operator_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\\n  \\\"assignedTo\\\": \\\"operator@traffic.com\\\"\\n}"
+              "raw": "{\n  \"query\": \"query ZonesByDensity($density: String!) { zonesByDensity(density: $density) { id name density vehicleCount averageSpeed } }\",\n  \"variables\": {\n    \"density\": \"HIGH\"\n  }\n}"
             },
             "url": {
-              "raw": "{{incidents_url}}/incidents/{{incident_id}}/assign",
-              "host": ["{{incidents_url}}"],
-              "path": ["incidents", "{{incident_id}}", "assign"]
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
             }
           }
         },
         {
-          "name": "Delete Incident",
+          "name": "3.5 Update Zone Density (ADMIN only)",
           "request": {
-            "method": "DELETE",
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation UpdateZoneDensity($zoneId: String!, $vehicleCount: Float!, $averageSpeed: Float!) { updateZoneDensity(zoneId: $zoneId, vehicleCount: $vehicleCount, averageSpeed: $averageSpeed) { id density vehicleCount averageSpeed } }\",\n  \"variables\": {\n    \"zoneId\": \"{{zone_id}}\",\n    \"vehicleCount\": 75,\n    \"averageSpeed\": 8.5\n  }\n}"
+            },
             "url": {
-              "raw": "{{incidents_url}}/incidents/{{incident_id}}",
-              "host": ["{{incidents_url}}"],
-              "path": ["incidents", "{{incident_id}}"]
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
+            }
+          }
+        },
+        {
+          "name": "3.6 Delete Traffic Zone (ADMIN only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation DeleteTrafficZone($id: String!) { deleteTrafficZone(id: $id) { id name } }\",\n  \"variables\": {\n    \"id\": \"{{zone_id}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
             }
           }
         }
       ]
     },
     {
-      "name": "Notifications",
+      "name": "4. Incidents Service",
       "item": [
         {
-          "name": "Get User Notifications",
+          "name": "4.1 Get All Incidents",
           "request": {
-            "method": "GET",
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{operator_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query { incidents { id type title description status latitude longitude reportedBy assignedTo } }\"\n}"
+            },
             "url": {
-              "raw": "{{notifications_url}}/notifications/user/{{user_id}}",
-              "host": ["{{notifications_url}}"],
-              "path": ["notifications", "user", "{{user_id}}"]
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
             }
           }
         },
         {
-          "name": "Get Unread Notifications",
+          "name": "4.2 Get Active Incidents",
           "request": {
-            "method": "GET",
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{operator_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query { activeIncidents { id type title status assignedTo } }\"\n}"
+            },
             "url": {
-              "raw": "{{notifications_url}}/notifications/user/{{user_id}}/unread",
-              "host": ["{{notifications_url}}"],
-              "path": ["notifications", "user", "{{user_id}}", "unread"]
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
             }
           }
         },
         {
-          "name": "Get Notification by ID",
+          "name": "4.3 Create Incident",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "const incidentId = jsonData?.data?.createIncident?.id;",
+                  "if (incidentId) {",
+                  "    pm.collectionVariables.set('incident_id', incidentId);",
+                  "    console.log('✅ Incident created, ID saved:', incidentId);",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
-            "method": "GET",
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{operator_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation CreateIncident($type: String!, $title: String!, $description: String!, $latitude: Float!, $longitude: Float!) { createIncident(type: $type, title: $title, description: $description, latitude: $latitude, longitude: $longitude) { id title type status } }\",\n  \"variables\": {\n    \"type\": \"ACCIDENT\",\n    \"title\": \"Accident sur l'A1\",\n    \"description\": \"Collision entre 2 véhicules\",\n    \"latitude\": 48.8566,\n    \"longitude\": 2.3522\n  }\n}"
+            },
             "url": {
-              "raw": "{{notifications_url}}/notifications/{{notification_id}}",
-              "host": ["{{notifications_url}}"],
-              "path": ["notifications", "{{notification_id}}"]
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
             }
           }
         },
         {
-          "name": "Mark Notification as Read",
+          "name": "4.4 Update Incident Status",
           "request": {
-            "method": "PATCH",
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{operator_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation UpdateIncidentStatus($incidentId: String!, $status: String!) { updateIncidentStatus(incidentId: $incidentId, status: $status) { id status } }\",\n  \"variables\": {\n    \"incidentId\": \"{{incident_id}}\",\n    \"status\": \"IN_PROGRESS\"\n  }\n}"
+            },
             "url": {
-              "raw": "{{notifications_url}}/notifications/{{notification_id}}/read",
-              "host": ["{{notifications_url}}"],
-              "path": ["notifications", "{{notification_id}}", "read"]
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
             }
           }
         },
         {
-          "name": "Mark All Notifications as Read",
+          "name": "4.5 Assign Incident (ADMIN only)",
           "request": {
-            "method": "PATCH",
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation AssignIncident($incidentId: String!, $assignedTo: String!) { assignIncident(incidentId: $incidentId, assignedTo: $assignedTo) { id assignedTo status } }\",\n  \"variables\": {\n    \"incidentId\": \"{{incident_id}}\",\n    \"assignedTo\": \"admin@traffic.com\"\n  }\n}"
+            },
             "url": {
-              "raw": "{{notifications_url}}/notifications/user/{{user_id}}/read-all",
-              "host": ["{{notifications_url}}"],
-              "path": ["notifications", "user", "{{user_id}}", "read-all"]
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
             }
           }
         },
         {
-          "name": "Delete Notification",
+          "name": "4.6 Delete Incident (ADMIN only)",
           "request": {
-            "method": "DELETE",
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation DeleteIncident($id: String!) { deleteIncident(id: $id) { id title } }\",\n  \"variables\": {\n    \"id\": \"{{incident_id}}\"\n  }\n}"
+            },
             "url": {
-              "raw": "{{notifications_url}}/notifications/{{notification_id}}",
-              "host": ["{{notifications_url}}"],
-              "path": ["notifications", "{{notification_id}}"]
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Notifications Service",
+      "item": [
+        {
+          "name": "5.1 Get User Notifications",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{operator_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query NotificationsByUser($userId: String!) { notificationsByUser(userId: $userId) { id title message type isRead createdAt } }\",\n  \"variables\": {\n    \"userId\": \"{{user_id}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
             }
           }
         },
         {
-          "name": "Delete All User Notifications",
+          "name": "5.2 Get Unread Notifications",
           "request": {
-            "method": "DELETE",
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{operator_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query UnreadNotifications($userId: String!) { unreadNotifications(userId: $userId) { id title message type isRead createdAt } }\",\n  \"variables\": {\n    \"userId\": \"{{user_id}}\"\n  }\n}"
+            },
             "url": {
-              "raw": "{{notifications_url}}/notifications/user/{{user_id}}",
-              "host": ["{{notifications_url}}"],
-              "path": ["notifications", "user", "{{user_id}}"]
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
+            }
+          }
+        },
+        {
+          "name": "5.3 Mark Notification as Read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{operator_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation MarkNotificationAsRead($id: String!) { markNotificationAsRead(id: $id) { id isRead } }\",\n  \"variables\": {\n    \"id\": \"{{notification_id}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
+            }
+          }
+        },
+        {
+          "name": "5.4 Mark All Notifications as Read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{operator_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation MarkAllNotificationsAsRead($userId: String!) { markAllNotificationsAsRead(userId: $userId) { id isRead } }\",\n  \"variables\": {\n    \"userId\": \"{{user_id}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
+            }
+          }
+        },
+        {
+          "name": "5.5 Delete Notification (ADMIN only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation DeleteNotification($id: String!) { deleteNotification(id: $id) { id title } }\",\n  \"variables\": {\n    \"id\": \"{{notification_id}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
             }
           }
         }

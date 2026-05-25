@@ -1,5 +1,5 @@
 import { ObjectType, Field, ID } from '@nestjs/graphql';
-import { UserRole } from '../entities/user.entity';
+import { UserRole } from '../enums/user-role.enum';
 
 @ObjectType()
 export class AuthResponseDto {
@@ -35,7 +35,7 @@ export class UserDto {
 
   @Field()
   isActive: boolean;
-
-  @Field()
-  createdAt: Date;
 }
+
+
+

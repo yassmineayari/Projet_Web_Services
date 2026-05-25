@@ -1,5 +1,5 @@
 import { IsString, IsEnum } from 'class-validator';
-import { NotificationType } from '../entities/notification.entity';
+import { NotificationType } from '../enums/notification-type.enum';
 
 export class CreateNotificationDto {
   @IsString()

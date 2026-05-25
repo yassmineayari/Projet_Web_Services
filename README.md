@@ -1,6 +1,6 @@
 # Urban Traffic Management System
 
-A distributed microservices-based urban traffic management platform with GraphQL API Gateway, built with NestJS and TypeORM.
+A distributed microservices-based urban traffic management platform with GraphQL API Gateway, built with NestJS and Prisma.
 
 ## Architecture
 
@@ -24,38 +24,38 @@ The system is built with a microservices architecture consisting of:
 
 ### Vehicles Service
 - Vehicle registration and management
-- Real-time GPS position tracking
+- GPS position tracking
 - GPS history retrieval
 - Vehicle status management
-- Multiple vehicle type support
+- Multiple vehicle types support
 
 ### Traffic Service
 - Traffic zone creation and management
-- Real-time traffic density calculation
-- Traffic congestion detection
-- Traffic zones classification (Low, Medium, High)
-- Average speed monitoring
+- Traffic density calculation (LOW, MEDIUM, HIGH)
+- Congested zones detection
 
 ### Incidents Service
 - Incident reporting system
-- Multiple incident types (Accident, Construction, Road Closed, Congestion)
-- Incident status tracking (Reported, In Progress, Resolved)
+- Incident types (ACCIDENT, CONSTRUCTION, ROAD_CLOSED, CONGESTION)
+- Incident status tracking (REPORTED, IN_PROGRESS, RESOLVED)
 - Operator assignment
-- Affected roads tracking
 
 ### Notifications Service
-- Real-time notifications
-- Notification types (Incident, Traffic Alert, Vehicle Update, System)
+- User notifications
 - Read/unread status tracking
-- User notification history
-- Bulk operations support
+- Bulk operations (mark all as read, admin deletions)
+
+## Role permissions (REST endpoints)
+
+- **OPERATOR** can: create incidents, update incident status, assign themselves (via assign endpoint)
+- **ADMIN** can: manage vehicles (create/update status/delete), manage traffic zones (create/update/density/delete), manage incidents (assign/update status/delete), manage notifications (delete)
 
 ## Technology Stack
 
 - **Backend**: NestJS
 - **API**: GraphQL with Apollo Server
 - **Database**: PostgreSQL
-- **ORM**: TypeORM
+- **ORM**: Prisma
 - **Authentication**: JWT + Passport
 - **Validation**: class-validator
 - **HTTP Client**: Axios
@@ -84,20 +84,32 @@ npm install
 cp .env.example .env
 ```
 
-4. Configure environment variables in `.env`:
+4. Configure environment variables in `.env`, then add or override service-specific connection strings in each service folder if needed.
 ```env
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_NAME=traffic_db
+DATABASE_ADMIN_URL=postgres://postgres:root@localhost:5432/postgres
+DATABASE_URL=postgres://postgres:root@localhost:5432/traffic_db
 JWT_SECRET=your_jwt_secret_key
 NODE_ENV=development
 ```
 
-5. Create PostgreSQL database:
+For service-specific development, use service env files under `src/<service>/.env` with values like:
+```env
+DATABASE_URL=postgres://postgres:root@localhost:5432/auth_db
+```
+
+5. Create the local PostgreSQL databases:
 ```bash
+createdb auth_db
+createdb vehicles_db
 createdb traffic_db
+createdb incidents_db
+createdb notifications_db
+```
+
+6. Initialize the databases and generate Prisma clients:
+```bash
+npm run db:setup
+npm run prisma:generate:all
 ```
 
 ## Running the Application
@@ -398,7 +410,6 @@ mutation {
   ) {
     id
     status
-    updatedAt
   }
 }
 ```
@@ -478,8 +489,7 @@ CREATE TABLE users (
   lastName VARCHAR NOT NULL,
   role ENUM('ADMIN', 'OPERATOR'),
   isActive BOOLEAN DEFAULT true,
-  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
@@ -495,8 +505,7 @@ CREATE TABLE vehicles (
   currentLatitude DECIMAL(11,8),
   currentLongitude DECIMAL(11,8),
   driverId VARCHAR,
-  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
@@ -526,8 +535,7 @@ CREATE TABLE traffic_zones (
   vehicleCount INT DEFAULT 0,
   averageSpeed DECIMAL(5,2) DEFAULT 0,
   lastUpdated TIMESTAMP,
-  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
@@ -545,8 +553,7 @@ CREATE TABLE incidents (
   assignedTo VARCHAR,
   resolvedAt TIMESTAMP,
   affectedRoads TEXT[],
-  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
@@ -663,14 +670,10 @@ git push origin feature/your-feature-name
 
 4. Create Pull Request
 
-## License
-
-MIT
-
 ## Author
 
-Your Team Name
-
+Sarra maazoun 
+yassmine ayari 
 ## Support
 
-For issues and questions, please contact the development team.
+For issues and questions, please contact us.

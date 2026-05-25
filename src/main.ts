@@ -1,6 +1,9 @@
+import { bootstrapEnv } from './bootstrap-env';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ApiGatewayModule } from './api-gateway/api-gateway.module';
+
+bootstrapEnv('api-gateway');
 
 async function bootstrap() {
   const app = await NestFactory.create(ApiGatewayModule);

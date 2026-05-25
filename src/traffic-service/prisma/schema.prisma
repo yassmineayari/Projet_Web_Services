@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model TrafficZone {
+  id              String         @id @default(uuid())
+  name            String
+  description     String
+  centerLatitude  Decimal        @db.Decimal(11, 8)
+  centerLongitude Decimal        @db.Decimal(11, 8)
+  radiusKm        Decimal        @db.Decimal(8, 2)
+  density         TrafficDensity @default(LOW)
+  vehicleCount    Int            @default(0)
+  averageSpeed    Decimal?       @db.Decimal(5, 2)
+  lastUpdated     DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt DateTime @default(now())
+
+}
+
+enum TrafficDensity {
+  LOW
+  MEDIUM
+  HIGH
+}

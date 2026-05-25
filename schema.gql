@@ -31,8 +31,8 @@ type Vehicle {
   model: String!
   type: String!
   status: String!
-  currentLatitude: Float!
-  currentLongitude: Float!
+  currentLatitude: Float
+  currentLongitude: Float
   driverId: String
   createdAt: DateTime!
 }
@@ -97,6 +97,7 @@ type Query {
   vehicles: [Vehicle!]!
   vehicle(id: String!): Vehicle!
   vehicleHistory(vehicleId: String!): VehicleHistory!
+  zonesByDensity(density: String!): [TrafficZone!]!
   trafficZones: [TrafficZone!]!
   trafficZone(id: String!): TrafficZone!
   congestedZones: [TrafficZone!]!
@@ -109,7 +110,7 @@ type Query {
 }
 
 type Mutation {
-  register(email: String!, password: String!, firstName: String!, lastName: String!): AuthResponse!
+  register(email: String!, password: String!, firstName: String!, lastName: String!, role: String!): AuthResponse!
   login(email: String!, password: String!): AuthResponse!
   createVehicle(plateNumber: String!, brand: String!, model: String!, type: String!): Vehicle!
   recordGPS(vehicleId: String!, latitude: Float!, longitude: Float!, speed: Float, heading: Float): GPSLocation!

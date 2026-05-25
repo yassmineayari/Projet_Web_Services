@@ -1,6 +1,9 @@
+import { bootstrapEnv } from './bootstrap-env';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './notifications-service/app.module';
+
+bootstrapEnv('notifications-service');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

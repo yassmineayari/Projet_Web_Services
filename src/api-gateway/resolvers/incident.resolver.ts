@@ -1,13 +1,39 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Context } from '@nestjs/graphql';
 import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import { Incident } from '../schemas/incident.schema';
+import { UseGuards } from '@nestjs/common';
+import { Roles } from '../../auth-service/roles/roles.decorator';
+import { RolesGuard } from '../../auth-service/roles/roles.guard';
+import { JwtAuthGuard } from '../../auth-service/guards/jwt-auth.guard';
 
 @Resolver()
 export class IncidentResolver {
-  constructor(private httpService: HttpService) {}
+  constructor(
+    private httpService: HttpService,
+    private configService: ConfigService,
+  ) {}
+
+  private get baseUrl(): string {
+    return this.configService.getOrThrow<string>('INCIDENTS_SERVICE_URL');
+  }
+
+  private getAuthHeaders(context: any) {
+    const request =
+      context?.req ||
+      context?.request ||
+      context?.req?.req ||
+      context?.request?.request ||
+      context;
+    const authHeader =
+      request?.headers?.authorization || request?.headers?.Authorization;
+    return authHeader ? { Authorization: authHeader } : {};
+  }
 
   @Mutation(() => Incident)
+  @Roles('OPERATOR', 'ADMIN')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async createIncident(
     @Args('type') type: string,
     @Args('title') title: string,
@@ -15,76 +41,103 @@ export class IncidentResolver {
     @Args('latitude') latitude: number,
     @Args('longitude') longitude: number,
     @Args('reportedBy', { nullable: true }) reportedBy?: string,
+    @Context() context?: any,
   ) {
     const response = await firstValueFrom(
-      this.httpService.post(`${process.env.INCIDENTS_SERVICE_URL}/incidents`, {
-        type,
-        title,
-        description,
-        latitude,
-        longitude,
-        reportedBy,
+      this.httpService.post(
+        `${this.baseUrl}/incidents`,
+        {
+          type,
+          title,
+          description,
+          latitude,
+          longitude,
+          reportedBy,
+        },
+        { headers: this.getAuthHeaders(context) },
+      ),
+    );
+    return response.data;
+  }
+
+  @Query(() => [Incident])
+  async incidents(@Context() context: any) {
+    const response = await firstValueFrom(
+      this.httpService.get(`${this.baseUrl}/incidents`, {
+        headers: this.getAuthHeaders(context),
       }),
     );
     return response.data;
   }
 
   @Query(() => [Incident])
-  async incidents() {
+  async activeIncidents(@Context() context: any) {
     const response = await firstValueFrom(
-      this.httpService.get(`${process.env.INCIDENTS_SERVICE_URL}/incidents`),
-    );
-    return response.data;
-  }
-
-  @Query(() => [Incident])
-  async activeIncidents() {
-    const response = await firstValueFrom(
-      this.httpService.get(`${process.env.INCIDENTS_SERVICE_URL}/incidents/active`),
+      this.httpService.get(`${this.baseUrl}/incidents/active`, {
+        headers: this.getAuthHeaders(context),
+      }),
     );
     return response.data;
   }
 
   @Query(() => Incident)
-  async incident(@Args('id') id: string) {
+  async incident(@Args('id') id: string, @Context() context: any) {
     const response = await firstValueFrom(
-      this.httpService.get(`${process.env.INCIDENTS_SERVICE_URL}/incidents/${id}`),
+      this.httpService.get(`${this.baseUrl}/incidents/${id}`, {
+        headers: this.getAuthHeaders(context),
+      }),
     );
     return response.data;
   }
 
   @Mutation(() => Incident)
+  @Roles('OPERATOR', 'ADMIN')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async updateIncidentStatus(
     @Args('incidentId') incidentId: string,
     @Args('status') status: string,
+    @Context() context?: any,
   ) {
     const response = await firstValueFrom(
       this.httpService.patch(
-        `${process.env.INCIDENTS_SERVICE_URL}/incidents/${incidentId}/status`,
-        { status },
+        `${this.baseUrl}/incidents/${incidentId}/status`,
+        {
+          status,
+        },
+        { headers: this.getAuthHeaders(context) },
       ),
     );
     return response.data;
   }
 
   @Mutation(() => Incident)
+  @Roles('ADMIN')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async assignIncident(
     @Args('incidentId') incidentId: string,
     @Args('assignedTo') assignedTo: string,
+    @Context() context?: any,
   ) {
     const response = await firstValueFrom(
       this.httpService.patch(
-        `${process.env.INCIDENTS_SERVICE_URL}/incidents/${incidentId}/assign`,
-        { assignedTo },
+        `${this.baseUrl}/incidents/${incidentId}/assign`,
+        {
+          assignedTo,
+        },
+        { headers: this.getAuthHeaders(context) },
       ),
     );
     return response.data;
   }
 
   @Mutation(() => Incident)
-  async deleteIncident(@Args('id') id: string) {
+  @Roles('ADMIN')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async deleteIncident(@Args('id') id: string, @Context() context: any) {
     const response = await firstValueFrom(
-      this.httpService.delete(`${process.env.INCIDENTS_SERVICE_URL}/incidents/${id}`),
+      this.httpService.delete(`${this.baseUrl}/incidents/${id}`, {
+        headers: this.getAuthHeaders(context),
+      }),
     );
     return response.data;
   }

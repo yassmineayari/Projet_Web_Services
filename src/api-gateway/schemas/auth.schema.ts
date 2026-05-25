@@ -1,5 +1,9 @@
-import { ObjectType, Field, ID, Resolver, Query, Mutation, Args } from '@nestjs/graphql';
-import { UserRole } from '../../auth-service/entities/user.entity';
+import { ObjectType, Field, ID, Resolver, Query, Mutation, Args, GraphQLISODateTime, registerEnumType } from '@nestjs/graphql';
+import { UserRole } from '../../auth-service/enums/user-role.enum';
+
+registerEnumType(UserRole, {
+  name: 'UserRole',
+});
 
 @ObjectType()
 export class User {
@@ -21,9 +25,11 @@ export class User {
   @Field()
   isActive: boolean;
 
-  @Field()
+  @Field(() => GraphQLISODateTime)
   createdAt: Date;
+
 }
+
 
 @ObjectType()
 export class AuthResponse {

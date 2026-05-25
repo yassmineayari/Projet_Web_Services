@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { ObjectType, Field, ID, GraphQLISODateTime } from '@nestjs/graphql';
 
 @ObjectType()
 export class Vehicle {
@@ -20,18 +20,19 @@ export class Vehicle {
   @Field()
   status: string;
 
-  @Field()
-  currentLatitude: number;
+  @Field({ nullable: true })
+  currentLatitude?: number;
 
-  @Field()
-  currentLongitude: number;
+  @Field({ nullable: true })
+  currentLongitude?: number;
 
   @Field({ nullable: true })
   driverId: string;
-
-  @Field()
+  @Field(() => GraphQLISODateTime)
   createdAt: Date;
+
 }
+
 
 @ObjectType()
 export class GPSLocation {

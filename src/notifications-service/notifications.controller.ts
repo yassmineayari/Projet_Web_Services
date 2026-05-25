@@ -1,5 +1,8 @@
-import { Controller, Post, Get, Param, Patch, Delete } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Delete, UseGuards } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
+import { Roles } from '../auth-service/roles/roles.decorator';
+import { RolesGuard } from '../auth-service/roles/roles.guard';
+import { JwtAuthGuard } from '../auth-service/guards/jwt-auth.guard';
 
 @Controller('notifications')
 export class NotificationsController {
@@ -31,12 +34,17 @@ export class NotificationsController {
   }
 
   @Delete(':id')
+  @Roles('ADMIN')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async deleteNotification(@Param('id') id: string) {
     return this.notificationsService.deleteNotification(id);
   }
 
   @Delete('user/:userId')
+  @Roles('ADMIN')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async deleteAllUserNotifications(@Param('userId') userId: string) {
     return this.notificationsService.deleteAllUserNotifications(userId);
   }
 }
+

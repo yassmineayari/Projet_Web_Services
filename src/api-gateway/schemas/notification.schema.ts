@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { ObjectType, Field, ID, GraphQLISODateTime } from '@nestjs/graphql';
 
 @ObjectType()
 export class Notification {
@@ -26,6 +26,8 @@ export class Notification {
   @Field({ nullable: true })
   relatedEntityType: string;
 
-  @Field()
+  @Field(() => GraphQLISODateTime)
   createdAt: Date;
+
 }
+

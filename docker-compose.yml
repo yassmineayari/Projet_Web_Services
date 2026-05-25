@@ -1,0 +1,114 @@
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - auth
+      - vehicles
+      - traffic
+      - incidents
+      - notifications
+    environment:
+      API_GATEWAY_PORT: 3000
+      AUTH_SERVICE_URL: http://auth:3001
+      VEHICLES_SERVICE_URL: http://vehicles:3002
+      TRAFFIC_SERVICE_URL: http://traffic:3003
+      INCIDENTS_SERVICE_URL: http://incidents:3004
+      NOTIFICATIONS_SERVICE_URL: http://notifications:3005
+      JWT_SECRET: your_jwt_secret_key
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+    command: ["node", "dist/main.js"]
+    restart: unless-stopped
+
+  auth:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://postgres:root@db:5432/auth_db
+      JWT_SECRET: your_jwt_secret_key
+      NODE_ENV: development
+    ports:
+      - "3001:3001"
+    command: ["node", "dist/auth-service/main.js"]
+    restart: unless-stopped
+
+  vehicles:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://postgres:root@db:5432/vehicles_db
+      JWT_SECRET: your_jwt_secret_key
+      NODE_ENV: development
+    ports:
+      - "3002:3002"
+    command: ["node", "dist/vehicles-service/main.js"]
+    restart: unless-stopped
+
+  traffic:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://postgres:root@db:5432/traffic_db
+      JWT_SECRET: your_jwt_secret_key
+      NODE_ENV: development
+    ports:
+      - "3003:3003"
+    command: ["node", "dist/traffic-main.js"]
+    restart: unless-stopped
+
+  incidents:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://postgres:root@db:5432/incidents_db
+      JWT_SECRET: your_jwt_secret_key
+      NODE_ENV: development
+    ports:
+      - "3004:3004"
+    command: ["node", "dist/incidents-main.js"]
+    restart: unless-stopped
+
+  notifications:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://postgres:root@db:5432/notifications_db
+      JWT_SECRET: your_jwt_secret_key
+      NODE_ENV: development
+    ports:
+      - "3005:3005"
+    command: ["node", "dist/notifications-main.js"]
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

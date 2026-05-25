@@ -3,6 +3,7 @@ import { HttpModule } from '@nestjs/axios';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ConfigModule } from '@nestjs/config';
+import { join } from 'path';
 
 import { AuthResolver } from './resolvers/auth.resolver';
 import { VehicleResolver } from './resolvers/vehicle.resolver';
@@ -14,8 +15,10 @@ import { NotificationResolver } from './resolvers/notification.resolver';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: 'api-gateway/.env',
-
+      envFilePath: [
+        join(process.cwd(), '.env'),
+        join(process.cwd(), 'src', 'api-gateway', '.env'),
+      ],
     }),
 
     HttpModule.register({
